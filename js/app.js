@@ -5,12 +5,53 @@
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
-    initNavigation();
-    initSmoothScroll();
-    initWeatherWidget();
-    initEventListeners();
-    loadUserPreferences();
-    console.log('🌊 ShoreSquad initialized successfully!');
+    console.log('🌊 ShoreSquad - Initializing application...');
+    console.log('📅 Date:', new Date().toLocaleString());
+    
+    try {
+        initNavigation();
+        console.log('✅ Navigation initialized');
+    } catch (error) {
+        console.error('❌ Navigation init error:', error);
+    }
+    
+    try {
+        initSmoothScroll();
+        console.log('✅ Smooth scroll initialized');
+    } catch (error) {
+        console.error('❌ Smooth scroll init error:', error);
+    }
+    
+    try {
+        initWeatherWidget();
+        console.log('✅ Weather widget initialized');
+    } catch (error) {
+        console.error('❌ Weather widget init error:', error);
+    }
+    
+    try {
+        initEventListeners();
+        console.log('✅ Event listeners initialized');
+    } catch (error) {
+        console.error('❌ Event listeners init error:', error);
+    }
+    
+    try {
+        loadUserPreferences();
+        console.log('✅ User preferences loaded');
+    } catch (error) {
+        console.error('❌ User preferences error:', error);
+    }
+    
+    // Check for Tawk.to
+    if (typeof Tawk_API !== 'undefined') {
+        console.log('✅ Tawk.to chat widget loaded');
+    } else {
+        console.log('⏳ Tawk.to chat widget loading...');
+    }
+    
+    console.log('🎉 ShoreSquad initialized successfully!');
+    console.log('💡 Open Chrome DevTools to see API calls and error handling');
 });
 
 // ==================== NAVIGATION ====================
@@ -112,127 +153,225 @@ function initSmoothScroll() {
     });
 }
 
-// ==================== WEATHER WIDGET ====================
+// ==================== WEATHER WIDGET (NEA Singapore API) ====================
 function initWeatherWidget() {
-    const searchBtn = document.getElementById('weather-search-btn');
-    const locationInput = document.getElementById('location-input');
-    const weatherDisplay = document.getElementById('weather-display');
+    const refreshBtn = document.getElementById('weather-refresh-btn');
     
-    if (searchBtn && locationInput) {
-        searchBtn.addEventListener('click', () => {
-            const location = locationInput.value.trim();
-            if (location) {
-                fetchWeather(location);
-            } else {
-                showWeatherError('Please enter a location');
-            }
-        });
-        
-        // Allow Enter key to trigger search
-        locationInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchBtn.click();
-            }
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            fetchNEAWeather();
         });
     }
     
-    // Try to get user's location on load
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                fetchWeatherByCoords(latitude, longitude);
-            },
-            (error) => {
-                console.log('Geolocation not available:', error);
-                showWeatherPlaceholder();
-            }
-        );
-    } else {
-        showWeatherPlaceholder();
+    // Automatically load weather on page load
+    fetchNEAWeather();
+}
+
+/**
+ * Fetch 24-hour weather forecast from NEA Singapore using JSONP
+ * API: https://api.data.gov.sg/v1/environment/24-hour-weather-forecast
+ */
+function fetchNEAWeather() {
+    const weatherDisplay = document.getElementById('weather-display');
+    if (!weatherDisplay) return;
+    
+    // Show loading state
+    weatherDisplay.className = 'weather-display loading-state';
+    weatherDisplay.innerHTML = '<div class="loading">🌤️ Fetching live weather from NEA Singapore...</div>';
+    
+    try {
+        console.log('🌤️ Fetching NEA weather data...');
+        
+        // Create JSONP callback
+        const callbackName = 'neaWeatherCallback_' + Date.now();
+        const apiUrl = `https://api.data.gov.sg/v1/environment/24-hour-weather-forecast`;
+        
+        // Since NEA API doesn't support JSONP, we'll use fetch with error handling
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('✅ Weather data received:', data);
+                displayNEAWeather(data);
+            })
+            .catch(error => {
+                console.error('❌ Weather API Error:', error);
+                showWeatherError(`Failed to load weather data: ${error.message}. Check Chrome DevTools Console for details.`);
+            });
+            
+    } catch (error) {
+        console.error('❌ Unexpected error in fetchNEAWeather:', error);
+        showWeatherError(`Unexpected error: ${error.message}`);
     }
 }
 
-async function fetchWeather(location) {
+/**
+ * Display NEA weather forecast data
+ * @param {Object} data - NEA API response data
+ */
+function displayNEAWeather(data) {
     const weatherDisplay = document.getElementById('weather-display');
     if (!weatherDisplay) return;
     
-    weatherDisplay.innerHTML = '<div class="loading">🌤️ Loading weather data...</div>';
-    
-    // Note: In production, replace with actual weather API
-    // Example: OpenWeatherMap API
-    // const API_KEY = 'your-api-key';
-    // const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${API_KEY}&units=imperial`;
-    
-    // Simulated weather data for demo
-    setTimeout(() => {
-        const mockWeatherData = {
-            location: location,
-            temperature: 72,
-            condition: 'Sunny',
-            humidity: 65,
-            windSpeed: 8,
-            icon: '☀️'
-        };
+    try {
+        if (!data || !data.items || data.items.length === 0) {
+            throw new Error('No weather data available');
+        }
         
-        displayWeather(mockWeatherData);
-    }, 1000);
+        const forecast = data.items[0];
+        const periods = forecast.periods || [];
+        const general = forecast.general || {};
+        
+        let forecastHTML = '<div class="weather-forecast-grid">';
+        
+        // General Forecast Card
+        if (general.forecast) {
+            forecastHTML += `
+                <div class="forecast-card">
+                    <div class="forecast-header">
+                        <div class="forecast-icon">${getWeatherIcon(general.forecast)}</div>
+                        <div>
+                            <h3 class="forecast-title">General Forecast</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem;">Singapore</p>
+                        </div>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">Condition:</span>
+                        <span class="forecast-detail-value">${general.forecast}</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">Temperature:</span>
+                        <span class="forecast-detail-value">${general.temperature?.low || 'N/A'}°C - ${general.temperature?.high || 'N/A'}°C</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">Humidity:</span>
+                        <span class="forecast-detail-value">${general.relative_humidity?.low || 'N/A'}% - ${general.relative_humidity?.high || 'N/A'}%</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">Wind:</span>
+                        <span class="forecast-detail-value">${general.wind?.direction || 'N/A'} ${general.wind?.speed?.low || 'N/A'}-${general.wind?.speed?.high || 'N/A'} km/h</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Period Forecasts (Morning, Afternoon, etc.)
+        periods.slice(0, 3).forEach(period => {
+            forecastHTML += `
+                <div class="forecast-card">
+                    <div class="forecast-header">
+                        <div class="forecast-icon">${getWeatherIcon(period.regions?.west || 'Partly Cloudy')}</div>
+                        <div>
+                            <h3 class="forecast-title">${formatPeriodTime(period.time)}</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem;">Regional Forecast</p>
+                        </div>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">West:</span>
+                        <span class="forecast-detail-value">${period.regions?.west || 'N/A'}</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">East:</span>
+                        <span class="forecast-detail-value">${period.regions?.east || 'N/A'}</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">Central:</span>
+                        <span class="forecast-detail-value">${period.regions?.central || 'N/A'}</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">South:</span>
+                        <span class="forecast-detail-value">${period.regions?.south || 'N/A'}</span>
+                    </div>
+                    <div class="forecast-detail">
+                        <span class="forecast-detail-label">North:</span>
+                        <span class="forecast-detail-value">${period.regions?.north || 'N/A'}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        forecastHTML += '</div>';
+        
+        // Add timestamp
+        const timestamp = new Date(forecast.timestamp || forecast.update_timestamp).toLocaleString();
+        forecastHTML += `
+            <div class="weather-timestamp">
+                📅 Last updated: ${timestamp} | Source: NEA Singapore
+            </div>
+        `;
+        
+        weatherDisplay.className = 'weather-display';
+        weatherDisplay.innerHTML = forecastHTML;
+        
+        console.log('✅ Weather display updated successfully');
+        
+    } catch (error) {
+        console.error('❌ Error displaying weather:', error);
+        showWeatherError(`Failed to display weather data: ${error.message}`);
+    }
 }
 
-async function fetchWeatherByCoords(lat, lon) {
-    // Note: In production, use actual API with coordinates
-    const mockWeatherData = {
-        location: 'Your Location',
-        temperature: 72,
-        condition: 'Partly Cloudy',
-        humidity: 65,
-        windSpeed: 8,
-        icon: '⛅'
-    };
+/**
+ * Get appropriate weather icon emoji based on forecast text
+ * @param {string} forecast - Weather forecast description
+ * @returns {string} - Weather emoji
+ */
+function getWeatherIcon(forecast) {
+    if (!forecast) return '🌤️';
     
-    displayWeather(mockWeatherData);
+    const condition = forecast.toLowerCase();
+    
+    if (condition.includes('thunder') || condition.includes('storm')) return '⛈️';
+    if (condition.includes('heavy rain') || condition.includes('shower')) return '🌧️';
+    if (condition.includes('rain') || condition.includes('drizzle')) return '🌦️';
+    if (condition.includes('cloudy') || condition.includes('overcast')) return '☁️';
+    if (condition.includes('partly cloudy') || condition.includes('fair')) return '⛅';
+    if (condition.includes('sunny') || condition.includes('clear')) return '☀️';
+    if (condition.includes('hazy') || condition.includes('haze')) return '🌫️';
+    if (condition.includes('windy')) return '💨';
+    
+    return '🌤️'; // Default
 }
 
-function displayWeather(data) {
-    const weatherDisplay = document.getElementById('weather-display');
-    if (!weatherDisplay) return;
+/**
+ * Format period time object to readable string
+ * @param {Object} time - Time object with start and end
+ * @returns {string} - Formatted time string
+ */
+function formatPeriodTime(time) {
+    if (!time) return 'N/A';
     
-    weatherDisplay.innerHTML = `
-        <div class="weather-info">
-            <div class="weather-main">
-                <div class="weather-icon">${data.icon}</div>
-                <div class="weather-temp">${data.temperature}°F</div>
-                <div class="weather-condition">${data.condition}</div>
-            </div>
-            <div class="weather-details">
-                <div class="weather-detail">
-                    <span class="detail-label">Location:</span>
-                    <span class="detail-value">${data.location}</span>
-                </div>
-                <div class="weather-detail">
-                    <span class="detail-label">Humidity:</span>
-                    <span class="detail-value">${data.humidity}%</span>
-                </div>
-                <div class="weather-detail">
-                    <span class="detail-label">Wind Speed:</span>
-                    <span class="detail-value">${data.windSpeed} mph</span>
-                </div>
-            </div>
-        </div>
-    `;
+    try {
+        const start = new Date(time.start);
+        const end = new Date(time.end);
+        
+        const startTime = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const endTime = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        
+        return `${startTime} - ${endTime}`;
+    } catch (error) {
+        return 'N/A';
+    }
 }
 
 function showWeatherError(message) {
     const weatherDisplay = document.getElementById('weather-display');
     if (weatherDisplay) {
-        weatherDisplay.innerHTML = `<div class="weather-error">❌ ${message}</div>`;
-    }
-}
-
-function showWeatherPlaceholder() {
-    const weatherDisplay = document.getElementById('weather-display');
-    if (weatherDisplay) {
-        weatherDisplay.innerHTML = '<div class="weather-placeholder">🌤️ Enter a location to check the weather</div>';
+        weatherDisplay.className = 'weather-display';
+        weatherDisplay.innerHTML = `
+            <div class="weather-error">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">❌</div>
+                <h3 style="color: var(--danger-color); margin-bottom: 0.5rem;">Weather Data Unavailable</h3>
+                <p>${message}</p>
+                <button class="btn btn-primary" onclick="fetchNEAWeather()" style="margin-top: 1rem;">
+                    Try Again
+                </button>
+            </div>
+        `;
     }
 }
 
@@ -479,6 +618,64 @@ function formatDate(date) {
     return date.toLocaleDateString('en-US', options);
 }
 
+// ==================== DEBUGGING & TESTING ====================
+// Make functions available in console for testing
+window.ShoreSquadDebug = {
+    fetchWeather: fetchNEAWeather,
+    testErrorHandling: () => {
+        console.log('🧪 Testing error handling...');
+        try {
+            throw new Error('This is a test error');
+        } catch (error) {
+            console.error('✅ Error caught successfully:', error);
+            showWeatherError('Test error: ' + error.message);
+        }
+    },
+    checkTawkTo: () => {
+        if (typeof Tawk_API !== 'undefined') {
+            console.log('✅ Tawk.to Status:', Tawk_API);
+            console.log('✅ Tawk.to is loaded and ready!');
+        } else {
+            console.log('❌ Tawk.to is not loaded yet');
+        }
+    },
+    testAPI: () => {
+        console.log('🧪 Testing NEA API...');
+        fetch('https://api.data.gov.sg/v1/environment/24-hour-weather-forecast')
+            .then(r => {
+                console.log('✅ API Response Status:', r.status);
+                return r.json();
+            })
+            .then(d => {
+                console.log('✅ API Data:', d);
+            })
+            .catch(e => {
+                console.error('❌ API Error:', e);
+            });
+    },
+    info: () => {
+        console.log(`
+🌊 ShoreSquad Debug Console
+========================
+Available commands:
+- ShoreSquadDebug.fetchWeather() - Refresh weather data
+- ShoreSquadDebug.testErrorHandling() - Test error handling
+- ShoreSquadDebug.checkTawkTo() - Check Tawk.to status
+- ShoreSquadDebug.testAPI() - Test NEA API directly
+- ShoreSquadDebug.info() - Show this help
+
+Tips for Chrome DevTools:
+1. Open Console (F12 or Ctrl+Shift+J)
+2. Watch Network tab for API calls
+3. Check Console for error messages
+4. Test functions directly in console
+        `);
+    }
+};
+
+// Show debug info on load
+console.log('💡 Debug tools available! Type ShoreSquadDebug.info() for commands');
+
 // ==================== EXPORT FOR TESTING ====================
 // Uncomment for module-based testing
-// export { initNavigation, fetchWeather, throttle, debounce };
+// export { initNavigation, fetchNEAWeather, throttle, debounce };

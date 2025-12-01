@@ -198,29 +198,17 @@
                 </div>
                 
                 <div class="map-wrapper">
-                    <!-- Map Container -->
+                    <!-- Map Container - Google Maps Embed -->
                     <div class="map-container">
-                        <div id="map" class="map-placeholder">
-                            <div class="map-placeholder-content">
-                                <div class="map-icon-large">🗺️</div>
-                                <h3 class="map-placeholder-title">Interactive Map Loading</h3>
-                                <p class="map-placeholder-text">Discover beach cleanup events in your area</p>
-                                <div class="map-demo-pins">
-                                    <div class="demo-pin" style="top: 30%; left: 25%;">
-                                        <span class="pin-icon">📍</span>
-                                        <span class="pin-label">Sunset Beach</span>
-                                    </div>
-                                    <div class="demo-pin" style="top: 50%; left: 60%;">
-                                        <span class="pin-icon">📍</span>
-                                        <span class="pin-label">Ocean Park</span>
-                                    </div>
-                                    <div class="demo-pin" style="top: 70%; left: 40%;">
-                                        <span class="pin-icon">📍</span>
-                                        <span class="pin-label">Harbor Beach</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <iframe 
+                            id="google-map"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255281.19036801374!2d103.67943524218749!3d1.3143393999999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da11238a8b9375%3A0x887869cf52abf5c4!2sSingapore!5e0!3m2!1sen!2ssg!4v1701436800000!5m2!1sen!2ssg"
+                            class="google-maps-iframe"
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Beach Cleanup Locations Map">
+                        </iframe>
                     </div>
                     
                     <!-- Map Sidebar with Event Details -->
@@ -305,15 +293,14 @@
         <section class="weather section" id="weather">
             <div class="container">
                 <h2 class="section-title">Weather Check</h2>
-                <p class="section-subtitle">Plan your cleanup with confidence</p>
+                <p class="section-subtitle">Plan your cleanup with confidence - Live Singapore Weather</p>
                 
                 <div class="weather-widget" id="weather-widget">
                     <div class="weather-search">
-                        <input type="text" class="weather-input" placeholder="Enter location..." id="location-input">
-                        <button class="btn btn-primary" id="weather-search-btn">Check Weather</button>
+                        <button class="btn btn-primary" id="weather-refresh-btn">🔄 Refresh Weather</button>
                     </div>
                     <div class="weather-display" id="weather-display">
-                        <!-- Weather data will be displayed here -->
+                        <div class="loading">🌤️ Loading live weather data from NEA...</div>
                     </div>
                 </div>
             </div>
@@ -402,6 +389,19 @@
             </div>
         </div>
     </footer>
+
+    <!-- Tawk.to Live Chat Widget -->
+    <script type="text/javascript">
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+            s1.async=true;
+            s1.src='https://embed.tawk.to/674c8f772480f5b4f59f3db7/1idsc9d5k';
+            s1.charset='UTF-8';
+            s1.setAttribute('crossorigin','*');
+            s0.parentNode.insertBefore(s1,s0);
+        })();
+    </script>
 
     <!-- JavaScript -->
     <script src="js/app.js"></script>
