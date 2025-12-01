@@ -170,9 +170,132 @@
                 <h2 class="section-title">Find Events Near You</h2>
                 <p class="section-subtitle">Explore cleanup locations on the map</p>
                 
-                <div class="map-container">
-                    <div id="map" class="map-placeholder">
-                        <p>🗺️ Interactive map will load here</p>
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <div class="map-search-bar">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="map-search-input" placeholder="Search for a beach or location..." id="map-search">
+                        <button class="btn btn-primary map-search-btn" id="map-search-btn">Search</button>
+                    </div>
+                    <div class="map-filters">
+                        <button class="filter-btn active" data-filter="all">
+                            <span class="filter-icon">🌊</span>
+                            All Events
+                        </button>
+                        <button class="filter-btn" data-filter="upcoming">
+                            <span class="filter-icon">📅</span>
+                            Upcoming
+                        </button>
+                        <button class="filter-btn" data-filter="today">
+                            <span class="filter-icon">⭐</span>
+                            Today
+                        </button>
+                        <button class="filter-btn" data-filter="near-me">
+                            <span class="filter-icon">📍</span>
+                            Near Me
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="map-wrapper">
+                    <!-- Map Container -->
+                    <div class="map-container">
+                        <div id="map" class="map-placeholder">
+                            <div class="map-placeholder-content">
+                                <div class="map-icon-large">🗺️</div>
+                                <h3 class="map-placeholder-title">Interactive Map Loading</h3>
+                                <p class="map-placeholder-text">Discover beach cleanup events in your area</p>
+                                <div class="map-demo-pins">
+                                    <div class="demo-pin" style="top: 30%; left: 25%;">
+                                        <span class="pin-icon">📍</span>
+                                        <span class="pin-label">Sunset Beach</span>
+                                    </div>
+                                    <div class="demo-pin" style="top: 50%; left: 60%;">
+                                        <span class="pin-icon">📍</span>
+                                        <span class="pin-label">Ocean Park</span>
+                                    </div>
+                                    <div class="demo-pin" style="top: 70%; left: 40%;">
+                                        <span class="pin-icon">📍</span>
+                                        <span class="pin-label">Harbor Beach</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Sidebar with Event Details -->
+                    <div class="map-sidebar">
+                        <div class="map-sidebar-header">
+                            <h3>Nearby Events</h3>
+                            <span class="event-count" id="event-count">3 events found</span>
+                        </div>
+                        <div class="map-event-list" id="map-event-list">
+                            <!-- Event items will be dynamically loaded -->
+                            <div class="map-event-item" data-location="sunset-beach">
+                                <div class="map-event-marker">📍</div>
+                                <div class="map-event-details">
+                                    <h4 class="map-event-title">Sunset Beach Cleanup</h4>
+                                    <p class="map-event-date">📅 Dec 7, 2025 • 3:00 PM</p>
+                                    <p class="map-event-location">📍 Sunset Beach, CA</p>
+                                    <p class="map-event-squad">👥 24 squad members</p>
+                                    <button class="btn btn-outline btn-sm">View Details</button>
+                                </div>
+                            </div>
+                            
+                            <div class="map-event-item" data-location="ocean-park">
+                                <div class="map-event-marker">📍</div>
+                                <div class="map-event-details">
+                                    <h4 class="map-event-title">Ocean Park Eco Day</h4>
+                                    <p class="map-event-date">📅 Dec 10, 2025 • 10:00 AM</p>
+                                    <p class="map-event-location">📍 Ocean Park, CA</p>
+                                    <p class="map-event-squad">👥 18 squad members</p>
+                                    <button class="btn btn-outline btn-sm">View Details</button>
+                                </div>
+                            </div>
+                            
+                            <div class="map-event-item" data-location="harbor-beach">
+                                <div class="map-event-marker">📍</div>
+                                <div class="map-event-details">
+                                    <h4 class="map-event-title">Harbor Beach Mission</h4>
+                                    <p class="map-event-date">📅 Dec 14, 2025 • 2:00 PM</p>
+                                    <p class="map-event-location">📍 Harbor Beach, CA</p>
+                                    <p class="map-event-squad">👥 31 squad members</p>
+                                    <button class="btn btn-outline btn-sm">View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Map Stats -->
+                <div class="map-stats">
+                    <div class="map-stat-card">
+                        <div class="stat-icon">🏖️</div>
+                        <div class="stat-content">
+                            <span class="stat-value">15</span>
+                            <span class="stat-label">Beaches Covered</span>
+                        </div>
+                    </div>
+                    <div class="map-stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <span class="stat-value">42</span>
+                            <span class="stat-label">Active Events</span>
+                        </div>
+                    </div>
+                    <div class="map-stat-card">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-content">
+                            <span class="stat-value">8</span>
+                            <span class="stat-label">Cities Involved</span>
+                        </div>
+                    </div>
+                    <div class="map-stat-card">
+                        <div class="stat-icon">💚</div>
+                        <div class="stat-content">
+                            <span class="stat-value">1.2k</span>
+                            <span class="stat-label">Squad Members</span>
+                        </div>
                     </div>
                 </div>
             </div>

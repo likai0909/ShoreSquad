@@ -256,6 +256,9 @@ function initEventListeners() {
         btn.addEventListener('click', handleSignup);
     });
     
+    // Map interactions
+    initMapInteractions();
+    
     // Intersection Observer for scroll animations
     observeElements();
 }
@@ -316,6 +319,119 @@ function loadUserPreferences() {
 function saveUserPreferences(preferences) {
     localStorage.setItem('shoresquad_preferences', JSON.stringify(preferences));
     console.log('Preferences saved:', preferences);
+}
+
+// ==================== MAP INTERACTIONS ====================
+function initMapInteractions() {
+    // Map search functionality
+    const mapSearchBtn = document.getElementById('map-search-btn');
+    const mapSearchInput = document.getElementById('map-search');
+    
+    if (mapSearchBtn && mapSearchInput) {
+        mapSearchBtn.addEventListener('click', () => {
+            const searchTerm = mapSearchInput.value.trim();
+            if (searchTerm) {
+                handleMapSearch(searchTerm);
+            }
+        });
+        
+        mapSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                mapSearchBtn.click();
+            }
+        });
+    }
+    
+    // Filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all buttons
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            const filter = btn.getAttribute('data-filter');
+            handleMapFilter(filter);
+        });
+    });
+    
+    // Map event item interactions
+    const mapEventItems = document.querySelectorAll('.map-event-item');
+    mapEventItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('btn')) {
+                highlightMapLocation(item.getAttribute('data-location'));
+            }
+        });
+    });
+    
+    // Demo pin interactions
+    const demoPins = document.querySelectorAll('.demo-pin');
+    demoPins.forEach(pin => {
+        pin.addEventListener('click', () => {
+            const locationName = pin.querySelector('.pin-label').textContent;
+            showLocationInfo(locationName);
+        });
+    });
+}
+
+function handleMapSearch(searchTerm) {
+    console.log('Searching map for:', searchTerm);
+    // In production, this would filter the map and event list
+    const eventCount = document.getElementById('event-count');
+    if (eventCount) {
+        eventCount.textContent = `Searching for "${searchTerm}"...`;
+        
+        setTimeout(() => {
+            eventCount.textContent = `2 events found near "${searchTerm}"`;
+        }, 1000);
+    }
+}
+
+function handleMapFilter(filter) {
+    console.log('Filtering by:', filter);
+    const eventCount = document.getElementById('event-count');
+    
+    // Simulate filtering
+    const filterCounts = {
+        'all': 3,
+        'upcoming': 3,
+        'today': 1,
+        'near-me': 2
+    };
+    
+    if (eventCount) {
+        eventCount.textContent = `${filterCounts[filter] || 0} events found`;
+    }
+    
+    // In production, this would filter the map markers and event list
+}
+
+function highlightMapLocation(location) {
+    console.log('Highlighting location:', location);
+    
+    // Remove highlight from all pins
+    const demoPins = document.querySelectorAll('.demo-pin');
+    demoPins.forEach(pin => {
+        pin.style.transform = '';
+    });
+    
+    // Add visual feedback
+    const mapEventItems = document.querySelectorAll('.map-event-item');
+    mapEventItems.forEach(item => {
+        if (item.getAttribute('data-location') === location) {
+            item.style.backgroundColor = '#E0F2FE';
+            setTimeout(() => {
+                item.style.backgroundColor = '';
+            }, 2000);
+        }
+    });
+}
+
+function showLocationInfo(locationName) {
+    console.log('Showing info for:', locationName);
+    alert(`📍 ${locationName}\n\nClick "View Details" on the event card to learn more!`);
 }
 
 // ==================== UTILITY FUNCTIONS ====================
